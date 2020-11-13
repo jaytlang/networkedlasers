@@ -24,6 +24,6 @@ REPO GUIDELINES:
    etc.
 
 THIS BRANCH:
--> This is the master branch. Integrated project products
-   go here. To work on ethernet or laser-related projects
-   exclusively, check out the relevant branches.
+-> This is the ethernet development branch. Ethernet-related
+   development goes here. Laser work goes on elsewhere, as
+   does integration.
