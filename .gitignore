@@ -1,1 +1,9 @@
 doc/generated_abstract.txt
+ethernet-working/
+ip/*.xdc
+ip/*.v
+ip/*.dcp
+ip/*.v
+ip/*.vhdl
+ip/*.xml
+ip/*.vh
