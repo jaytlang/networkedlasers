@@ -22,3 +22,8 @@ REPO GUIDELINES:
 
 -> Good commit messages, use signatures to assert who did what, 
    etc.
+
+THIS BRANCH:
+-> This is the master branch. Integrated project products
+   go here. To work on ethernet or laser-related projects
+   exclusively, check out the relevant branches.
