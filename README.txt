@@ -24,6 +24,5 @@ REPO GUIDELINES:
    etc.
 
 THIS BRANCH:
--> This is the master branch. Integrated project products
-   go here. To work on ethernet or laser-related projects
-   exclusively, check out the relevant branches.
+-> This is the laser branch. Fischer's pre-integration dev
+   work goes here!
