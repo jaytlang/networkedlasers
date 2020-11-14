@@ -5,6 +5,9 @@ app/output/*.csv
 app/output/*.png
 app/output/*.jpg
 
+pcb/History/
+pcb/__Previews/
+
 ip/*.xdc
 ip/*.v
 ip/*.dcp
