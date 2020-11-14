@@ -7,3 +7,4 @@ ip/*.v
 ip/*.vhdl
 ip/*.xml
 ip/*.vh
+*.log
