@@ -1,1 +1,14 @@
 doc/generated_abstract.txt
+lasers_project/
+**/__pycache__/
+app/output/*.csv
+app/output/*.png
+app/output/*.jpg
+
+ip/*.xdc
+ip/*.v
+ip/*.dcp
+ip/*.v
+ip/*.vhdl
+ip/*.xml
+ip/*.vh
