@@ -20,8 +20,8 @@ module net_top_tx(
     
     /* All logics here */
     parameter ST_PULL = 2'd0;
+    parameter ST_PUSH = 2'd1;
     parameter ST_CONFIRM = 2'd2;
-    parameter ST_PUSH = 2'd3;
     
     // No reset
     logic sys_clk;
@@ -53,7 +53,14 @@ module net_top_tx(
     assign eth_rstn = !btnc;
     
     /* All submodules here */
+    /* Suggested ILA configuration: 
+    eth_ila             ila(.clk(sys_clk),
+                            .probe0(state),
+                            .probe1(eth_txen),
+                            .probe2(eth_txd),
+                            .probe3(eth_rxd));
     
+    */
     eth_refclk_divider  erd(.in(clk_100mhz),
                             .out(sys_clk),
                             .reset(sys_rst));
