@@ -92,7 +92,8 @@ module mac_rx(
                         axi_rx_data <= phy_rxd;
                         if(counter == 6) begin      // 6 due to somewhat backwards byte ordering
                             // Promiscuous mode not supported; it would go here if so
-                            state <= (THIS_MAC == {macbuf[47:8],phy_rxd,macbuf[5:0]}) ? ST_SRC : ST_BADDST;
+                            state <= (THIS_MAC == {macbuf[47:8],phy_rxd,macbuf[5:0]}) ? ST_SRC : 
+                                     ({macbuf[47:8],phy_rxd,macbuf[5:0]} == 48'hff_ff_ff_ff_ff_ff) ? ST_SRC : ST_BADDST;
                             counter <= 32'b0;
                             macbuf <= 48'b0;
                         end else begin
