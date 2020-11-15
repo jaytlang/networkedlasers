@@ -8,6 +8,7 @@ app/output/*.jpg
 pcb/History/
 pcb/__Previews/
 pcb/projector_board/History/
+pcb/projector_board/Project Logs for projector_board
 
 ip/*.xdc
 ip/*.v
