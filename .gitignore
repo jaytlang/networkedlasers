@@ -4,6 +4,7 @@ lasers_project/
 app/output/*.csv
 app/output/*.png
 app/output/*.jpg
+*.tmp
 
 pcb/History/
 pcb/__Previews/

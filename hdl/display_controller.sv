@@ -12,15 +12,9 @@ module display_controller(
     output logic y_mosi,
     output logic y_cs,
     
-    output logic b_sclk,
-    output logic b_mosi,
-    output logic b_cs,
-    output logic r_sclk,
-    output logic r_mosi,
-    output logic r_cs,
-    output logic g_sclk,
-    output logic g_mosi,
-    output logic g_cs
+    output logic r_pwm,
+    output logic g_pwm,
+    output logic b_pwm
     );
     
     parameter X_LENGTH = 16; //how many bits in the memory address to allocate for X, Y, B, G, R
@@ -43,11 +37,10 @@ module display_controller(
 
     
     // SPI controllers
-    logic x_start, y_start, b_start, g_start, r_start;
-    logic x_busy, y_busy, b_busy, g_busy, r_busy;
-    logic [15:0] x, y;
-    logic [7:0] b, g, r;
-    
+    logic x_start, y_start;
+    logic x_busy, y_busy;
+    logic [15:0] x, y;    
+    logic [7:0] r, g, b;
     
     // State Machine
     
@@ -65,9 +58,6 @@ module display_controller(
             frame_delay_counter <= 0;
             x_start <= 0;
             y_start <= 0;
-            b_start <= 0;
-            g_start <= 0;
-            r_start <= 0;
         end else begin
             frame_delay_counter <= frame_delay_counter + 1;
             
@@ -78,18 +68,12 @@ module display_controller(
             if(frame_delay_counter == frame_delay - 1) begin
                 x_start <= 1;
                 y_start <= 1;
-                b_start <= 1;
-                g_start <= 1;
-                r_start <= 1;
             end
             
             if(frame_delay_counter == frame_delay) begin
                 frame_delay_counter <= 0;
                 x_start <= 0;
                 y_start <= 0;
-                b_start <= 0;
-                g_start <= 0;
-                r_start <= 0; 
             end            
         end
     end
@@ -118,41 +102,22 @@ module display_controller(
             .sclk_out(y_sclk),
             .mosi_out(y_mosi),
             .cs_out(y_cs));
-   
-    spi b_spi_controller(
+
+    pwm r_pwm_controller(
             .reset_in(reset_in),
             .clock_in(clock_in),
-            .data_in(b),
-            .data_length_in(B_LENGTH),
-            .start_in(b_start),
-            .busy_out(b_busy),
-            
-            .sclk_out(b_sclk),
-            .mosi_out(b_mosi),
-            .cs_out(b_cs));
-            
-    spi g_spi_controller(
-            .reset_in(reset_in),
-            .clock_in(clock_in),
-            .data_in(g),
-            .data_length_in(G_LENGTH),
-            .start_in(g_start),
-            .busy_out(g_busy),
-            
-            .sclk_out(g_sclk),
-            .mosi_out(g_mosi),
-            .cs_out(g_cs));
+            .value(r),
+            .pwm_out(r_pwm));
     
-    spi r_spi_controller(
+    pwm g_pwm_controller(
             .reset_in(reset_in),
             .clock_in(clock_in),
-            .data_in(r),
-            .data_length_in(R_LENGTH),
-            .start_in(r_start),
-            .busy_out(r_busy),
+            .value(g),
+            .pwm_out(g_pwm));
             
-            .sclk_out(r_sclk),
-            .mosi_out(r_mosi),
-            .cs_out(r_cs));
-    
+    pwm b_pwm_controller(
+            .reset_in(reset_in),
+            .clock_in(clock_in),
+            .value(b),
+            .pwm_out(b_pwm));    
 endmodule

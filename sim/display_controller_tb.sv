@@ -3,9 +3,10 @@ module display_controller_tb();
     logic reset;
     logic clock;
 
-    logic x_sclk, y_sclk, r_sclk, g_sclk, b_sclk;
-    logic x_mosi, y_mosi, r_mosi, g_sclk, b_sclk;
-    logic x_cs, y_cs, r_cs, g_cs, b_cs;
+    logic x_sclk, y_sclk;
+    logic x_mosi, y_mosi;
+    logic x_cs, y_cs;
+    logic r_pwm, g_pwm, b_pwm;
 
     display_controller uut (.reset_in(reset),
                             .clock_in(clock),
@@ -19,17 +20,9 @@ module display_controller_tb();
                             .y_mosi(y_mosi),
                             .y_cs(y_cs),
 
-                            .r_sclk(r_sclk),
-                            .r_mosi(r_mosi),
-                            .r_cs(r_cs),
-
-                            .g_sclk(g_sclk),
-                            .g_mosi(g_mosi),
-                            .g_cs(g_cs),
-
-                            .b_sclk(b_sclk),
-                            .b_mosi(b_mosi),
-                            .b_cs(b_cs));
+                            .r_pwm(r_pwm),
+                            .g_pwm(g_pwm),
+                            .b_pwm(b_pwm));
 
     // clk has 50% duty cycle, 10ns period
     always #5 clock = ~clock;
