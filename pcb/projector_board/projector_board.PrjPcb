@@ -38,6 +38,23 @@ PrefsVaultGUID=
 PrefsRevisionGUID=
 
 [Document1]
+DocumentPath=..\..\..\MY20EE\2 Layer PCBWay ALL.OutJob
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=1
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=
+
+[Document2]
 DocumentPath=projector_board.PcbDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -54,7 +71,7 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=LVLLXYOI
 
-[Document2]
+[Document3]
 DocumentPath=galvo_driver.SchDoc
 AnnotationEnabled=1
 AnnotateStartValue=1
@@ -70,6 +87,206 @@ ClassGenNCAutoScope=None
 DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=BEVMQIKI
+
+[GeneratedDocument1]
+DocumentPath=Project Outputs for Free Documents\Test Points\Assembly Testpoint Report for projector_board.csv
+DItemRevisionGUID=
+
+[GeneratedDocument2]
+DocumentPath=Project Outputs for projector_board\Test Points\Assembly Testpoint Report for projector_board.csv
+DItemRevisionGUID=
+
+[GeneratedDocument3]
+DocumentPath=Project Outputs for Free Documents\BOM\Bill of Materials-projector_board.xlsx
+DItemRevisionGUID=
+
+[GeneratedDocument4]
+DocumentPath=Project Outputs for projector_board\BOM\Bill of Materials-projector_board.xlsx
+DItemRevisionGUID=
+
+[GeneratedDocument5]
+DocumentPath=Project Outputs for Free Documents\Pick Place\Pick Place for projector_board.txt
+DItemRevisionGUID=
+
+[GeneratedDocument6]
+DocumentPath=Project Outputs for projector_board\Pick Place\Pick Place for projector_board.txt
+DItemRevisionGUID=
+
+[GeneratedDocument7]
+DocumentPath=Project Outputs for Free Documents\NC Drill\projector_board.DRR
+DItemRevisionGUID=
+
+[GeneratedDocument8]
+DocumentPath=Project Outputs for projector_board\NC Drill\projector_board.DRR
+DItemRevisionGUID=
+
+[GeneratedDocument9]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.EXTREP
+DItemRevisionGUID=
+
+[GeneratedDocument10]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.EXTREP
+DItemRevisionGUID=
+
+[GeneratedDocument11]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GBL
+DItemRevisionGUID=
+
+[GeneratedDocument12]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GBL
+DItemRevisionGUID=
+
+[GeneratedDocument13]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GBO
+DItemRevisionGUID=
+
+[GeneratedDocument14]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GBO
+DItemRevisionGUID=
+
+[GeneratedDocument15]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GBP
+DItemRevisionGUID=
+
+[GeneratedDocument16]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GBP
+DItemRevisionGUID=
+
+[GeneratedDocument17]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GBS
+DItemRevisionGUID=
+
+[GeneratedDocument18]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GBS
+DItemRevisionGUID=
+
+[GeneratedDocument19]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GKO
+DItemRevisionGUID=
+
+[GeneratedDocument20]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GKO
+DItemRevisionGUID=
+
+[GeneratedDocument21]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GM1
+DItemRevisionGUID=
+
+[GeneratedDocument22]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GM1
+DItemRevisionGUID=
+
+[GeneratedDocument23]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GPB
+DItemRevisionGUID=
+
+[GeneratedDocument24]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GPB
+DItemRevisionGUID=
+
+[GeneratedDocument25]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GPT
+DItemRevisionGUID=
+
+[GeneratedDocument26]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GPT
+DItemRevisionGUID=
+
+[GeneratedDocument27]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GTL
+DItemRevisionGUID=
+
+[GeneratedDocument28]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GTL
+DItemRevisionGUID=
+
+[GeneratedDocument29]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GTO
+DItemRevisionGUID=
+
+[GeneratedDocument30]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GTO
+DItemRevisionGUID=
+
+[GeneratedDocument31]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GTP
+DItemRevisionGUID=
+
+[GeneratedDocument32]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GTP
+DItemRevisionGUID=
+
+[GeneratedDocument33]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.GTS
+DItemRevisionGUID=
+
+[GeneratedDocument34]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.GTS
+DItemRevisionGUID=
+
+[GeneratedDocument35]
+DocumentPath=Project Outputs for Free Documents\DRC\projector_board.html
+DItemRevisionGUID=
+
+[GeneratedDocument36]
+DocumentPath=Project Outputs for Free Documents\ERC\projector_board.html
+DItemRevisionGUID=
+
+[GeneratedDocument37]
+DocumentPath=Project Outputs for projector_board\DRC\projector_board.html
+DItemRevisionGUID=
+
+[GeneratedDocument38]
+DocumentPath=Project Outputs for projector_board\ERC\projector_board.html
+DItemRevisionGUID=
+
+[GeneratedDocument39]
+DocumentPath=Project Outputs for Free Documents\NC Drill\projector_board.LDP
+DItemRevisionGUID=
+
+[GeneratedDocument40]
+DocumentPath=Project Outputs for projector_board\NC Drill\projector_board.LDP
+DItemRevisionGUID=
+
+[GeneratedDocument41]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.REP
+DItemRevisionGUID=
+
+[GeneratedDocument42]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.REP
+DItemRevisionGUID=
+
+[GeneratedDocument43]
+DocumentPath=Project Outputs for Free Documents\Gerber\projector_board.RUL
+DItemRevisionGUID=
+
+[GeneratedDocument44]
+DocumentPath=Project Outputs for projector_board\Gerber\projector_board.RUL
+DItemRevisionGUID=
+
+[GeneratedDocument45]
+DocumentPath=Project Outputs for Free Documents\ExportSTEP\projector_board.step
+DItemRevisionGUID=
+
+[GeneratedDocument46]
+DocumentPath=Project Outputs for projector_board\ExportSTEP\projector_board.step
+DItemRevisionGUID=
+
+[GeneratedDocument47]
+DocumentPath=Project Outputs for Free Documents\NC Drill\projector_board.TXT
+DItemRevisionGUID=
+
+[GeneratedDocument48]
+DocumentPath=Project Outputs for projector_board\NC Drill\projector_board.TXT
+DItemRevisionGUID=
+
+[GeneratedDocument49]
+DocumentPath=Project Outputs for Free Documents\Report Board Stack\projector_board.xls
+DItemRevisionGUID=
+
+[GeneratedDocument50]
+DocumentPath=Project Outputs for projector_board\Report Board Stack\projector_board.xls
+DItemRevisionGUID=
 
 [Configuration1]
 Name=Sources
