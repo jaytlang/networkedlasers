@@ -35,15 +35,8 @@ module top_level(   input  logic            clk_100mhz,     // clock
                             .y_mosi(jb[1]),
                             .y_cs(jb[0]),
 
-                            .r_sclk(jc[3]),
-                            .r_mosi(jc[1]),
-                            .r_cs(jc[0]),
-
-                            .g_sclk(jd[3]),
-                            .g_mosi(jd[1]),
-                            .g_cs(jd[0]),
-
-                            .b_sclk(jd[7]),
-                            .b_mosi(jd[5]),
-                            .b_cs(jd[4]));
+                            .r_pwm(jc[0]),
+                            .g_pwm(jc[1]),
+                            .b_pwm(jc[2]),
+                            .frame_sync(jc[3]));
 endmodule

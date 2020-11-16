@@ -14,7 +14,9 @@ module display_controller(
     
     output logic r_pwm,
     output logic g_pwm,
-    output logic b_pwm
+    output logic b_pwm,
+
+    output logic frame_sync
     );
     
     parameter X_LENGTH = 16; //how many bits in the memory address to allocate for X, Y, B, G, R
@@ -58,6 +60,7 @@ module display_controller(
             frame_delay_counter <= 0;
             x_start <= 0;
             y_start <= 0;
+            frame_sync <= 0;
         end else begin
             frame_delay_counter <= frame_delay_counter + 1;
             
@@ -74,6 +77,7 @@ module display_controller(
                 frame_delay_counter <= 0;
                 x_start <= 0;
                 y_start <= 0;
+                frame_sync <= ~frame_sync;
             end            
         end
     end
