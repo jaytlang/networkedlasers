@@ -7,7 +7,7 @@ module mac_rx_ifc(
                   input logic rx_axi_valid,
                   input logic[1:0] rx_axi_data,
 
-                  output logic[7:0] pktbuf[1517:0],
+                  output logic[1517:0][7:0] pktbuf,
                   output logic[10:0] pktbuf_maxaddr,
                   output logic doorbell
     );
@@ -28,7 +28,7 @@ module mac_rx_ifc(
     /* All clocked logic here */
     always_ff @(posedge clk) begin
         if(rst == 1'b1) begin
-            foreach(pktbuf[i]) pktbuf[i] <= 0;
+            pktbuf <= 0;
             pktbuf_maxaddr <= 0;
             pktbuf_addr <= 0;
             bytectr <= 0;

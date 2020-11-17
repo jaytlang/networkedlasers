@@ -8,7 +8,7 @@ module mac_tx_ifc(
                   output logic tx_axi_valid,
                   output logic[1:0] tx_axi_data,
 
-                  input logic[7:0] pktbuf[1517:0],
+                  input logic[1517:0][7:0] pktbuf,
                   input logic[10:0] pktbuf_maxaddr,
                   input logic doorbell,
                   output logic available

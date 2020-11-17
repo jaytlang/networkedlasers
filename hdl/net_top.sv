@@ -18,10 +18,27 @@ module net_top_tx(
     output logic[15:0] led
     );
 
-    /* All logics here */
+    /* All parameters here */
     parameter ST_PULL = 2'd0;
     parameter ST_PUSH = 2'd1;
     parameter ST_CONFIRM = 2'd2;
+
+    /* Ethernet header */
+    parameter ETH_DST_MIN = 0;
+    parameter ETH_DST_MAX = 5;
+    parameter ETH_SRC_MIN = 6;
+    parameter ETH_SRC_MAX = 11;
+    parameter ETH_ETYPE_MIN = 12;
+    parameter ETH_ETYPE_MAX = 13;
+
+    /* Ethernet offsets */
+    parameter ETH_DATA_START = 14;
+    parameter ETH_MTU = 1518;
+    parameter ETH_ADDRSZ = 6;
+
+    /* Ethernet parameters */
+    parameter ETH_ECHOSVC_ETYPE = 16'h1234;
+    parameter ETH_MYADDR = 48'hb8_27_eb_a4_30_73;
 
     // No reset
     logic sys_clk;
@@ -34,14 +51,18 @@ module net_top_tx(
     logic tx_axi_valid;
     logic[1:0] tx_axi_din;
 
-    logic[7:0] rx_pktbuf[1517:0];
+    logic[1517:0][7:0] rx_pktbuf;
     logic[10:0] rx_pktbuf_maxaddr;
     logic rx_doorbell;
 
     logic tx_available;
 
+    /* DEBUG
+    logic[15:0] eth_vitro_type;
+    */
+
     // Reset required
-    logic[7:0] tx_pktbuf[1517:0];
+    logic[1517:0][7:0] tx_pktbuf;
     logic[10:0] tx_pktbuf_maxaddr;
     logic tx_doorbell;
     logic[1:0] state;
@@ -51,16 +72,20 @@ module net_top_tx(
     assign eth_refclk = sys_clk;
     assign sys_rst = btnc;
     assign eth_rstn = !btnc;
+    /*
+    assign eth_vitro_type = rx_pktbuf[ETH_ETYPE_MAX:ETH_ETYPE_MIN];
+    */
 
     /* All submodules here */
-    /* Suggested ILA configuration:
+    /*
     eth_ila             ila(.clk(sys_clk),
                             .probe0(state),
                             .probe1(eth_txen),
                             .probe2(eth_txd),
-                            .probe3(eth_rxd));
-
+                            .probe3(eth_rxd),
+                            .probe4(eth_vitro_type));
     */
+
     eth_refclk_divider  erd(.in(clk_100mhz),
                             .out(sys_clk),
                             .reset(sys_rst));
@@ -102,7 +127,7 @@ module net_top_tx(
     /* Clocked logic here */
     always_ff @(posedge sys_clk) begin
         if(sys_rst == 1'b1) begin
-            foreach(tx_pktbuf[i]) tx_pktbuf[i] <= 0;
+            tx_pktbuf <= 0;
             tx_pktbuf_maxaddr <= 0;
             tx_doorbell <= 0;
             state <= ST_PULL;
@@ -118,12 +143,19 @@ module net_top_tx(
                     // approach will work for some L3 protocols.
 
                     // Echo server: flip MAC addresses for response tx.
-                    tx_pktbuf[5:0] <= rx_pktbuf[11:6];
-                    tx_pktbuf[11:6] <= rx_pktbuf[5:0];
-                    tx_pktbuf[1517:12] <= rx_pktbuf[1517:12];
+                    // Service type is 0x1234
+                    if(rx_pktbuf[ETH_ETYPE_MAX:ETH_ETYPE_MIN] == ETH_ECHOSVC_ETYPE) begin
+                        tx_pktbuf[5:0] <= rx_pktbuf[11:6];
+                        tx_pktbuf[11:6] <= rx_pktbuf[5:0];
+                        tx_pktbuf[1517:12] <= rx_pktbuf[1517:12];
 
-                    tx_pktbuf_maxaddr <= rx_pktbuf_maxaddr;
-                    state <= ST_PUSH;
+                        tx_pktbuf_maxaddr <= rx_pktbuf_maxaddr;
+                        state <= ST_PUSH;
+
+                    // Unknown ethertype, drop the packet
+                    end else begin
+                        state <= ST_CONFIRM;
+                    end
 
                 end // else don't do anything lol
 
