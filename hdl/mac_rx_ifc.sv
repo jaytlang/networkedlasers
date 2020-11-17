@@ -3,28 +3,28 @@
 module mac_rx_ifc(
                   input logic clk,
                   input logic rst,
-                  
+
                   input logic rx_axi_valid,
                   input logic[1:0] rx_axi_data,
-                  
+
                   output logic[7:0] pktbuf[1517:0],
                   output logic[10:0] pktbuf_maxaddr,
                   output logic doorbell
     );
-    
+
     /* All parameters here */
     parameter ST_WAIT   = 1'b0;
     parameter ST_RX     = 1'b1;
-    
-    /* All logics here */ 
+
+    /* All logics here */
     logic[10:0] pktbuf_addr;
     logic[2:0] bytectr;
     logic state;
-    
+
     /* All preliminary assignments here */
-    
+
     /* All submodules here */
-    
+
     /* All clocked logic here */
     always_ff @(posedge clk) begin
         if(rst == 1'b1) begin
@@ -43,7 +43,7 @@ module mac_rx_ifc(
                     pktbuf_addr <= 0;
                     pktbuf_maxaddr <= 0;
                     doorbell <= 0;
-                    
+
                 end else begin
                     state <= ST_WAIT;
                     bytectr <= 0;
@@ -59,7 +59,7 @@ module mac_rx_ifc(
                     bytectr <= 0;
                     pktbuf_addr <= 0;
                     state <= ST_RX;
-                    
+
                     // CRC check
                     if(rx_axi_data != 2'b11) begin
                         pktbuf_maxaddr <= 0;
@@ -78,7 +78,7 @@ module mac_rx_ifc(
                         bytectr <= bytectr + 2;
                         // No change to pktbuf addressing
                     end
-                    
+
                     // Insert the new nibble
                     pktbuf[pktbuf_addr][bytectr +: 2] <= rx_axi_data;
                     state <= ST_RX;
@@ -88,5 +88,5 @@ module mac_rx_ifc(
             end
         end
     end
-    
+
 endmodule
