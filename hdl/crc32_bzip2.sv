@@ -5,7 +5,7 @@
  *
  * This code was generated with the help of CRCGEN.PL v1.7
  */
- 
+
 // Disclaimer: THESE DESIGNS ARE PROVIDED "AS IS" WITH NO WARRANTY
 //             WHATSOEVER AND XILINX SPECIFICALLY DISCLAIMS ANY
 //             IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
@@ -20,16 +20,16 @@ module crc32_bzip2(
     input logic         d_valid,
     input logic         clk,
     input logic         reset,
-    
+
     output logic[31:0]  crc_reg,
     output logic[1:0]   crc
     );
-    
+
     //////////////////////////////////////////////////////////////////////////////
     // Internal Signals
     //////////////////////////////////////////////////////////////////////////////
     wire   [31:0] next_crc;
-    
+
     //////////////////////////////////////////////////////////////////////////////
     // Infer CRC-32 registers
     //
@@ -48,34 +48,34 @@ module crc32_bzip2(
     // -----+---------+----------+----------------------------------------------
     //
     //////////////////////////////////////////////////////////////////////////////
-    
+
     always @ (posedge clk or posedge reset)
     begin
        if (reset) begin
           crc_reg <= 32'hFFFFFFFF;
           crc     <= 2'hF;
        end
-    
+
        else if (init) begin
           crc_reg <= 32'hFFFFFFFF;
           crc     <=  2'hF;
        end
-    
+
        else if (calc & d_valid) begin
           crc_reg <= next_crc;
           crc     <= ~{next_crc[30], next_crc[31]};
        end
-    
+
        else if (~calc & d_valid) begin
           crc_reg <=  {crc_reg[29:0], 2'hF};
           crc     <= ~{crc_reg[28], crc_reg[29]};
        end
     end
-    
+
     //////////////////////////////////////////////////////////////////////////////
     // CRC XOR equations
     //////////////////////////////////////////////////////////////////////////////
-    
+
     assign next_crc[0] = d[1] ^ crc_reg[30];
     assign next_crc[1] = d[0] ^ d[1] ^ crc_reg[30] ^ crc_reg[31];
     assign next_crc[2] = crc_reg[31] ^ crc_reg[30] ^ d[1] ^ d[0] ^ crc_reg[0];
