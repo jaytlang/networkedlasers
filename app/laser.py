@@ -38,11 +38,17 @@ if '-t' in argv and '-o' not in argv:
 #    raise SystemExit("No output destination specified, specify one with -o or -n or run 'laser.py -h' for more information")
 
 # Set capture to whatever was passed in with the -i option
+#cv2.setUseOptimized(True) # no idea if this does anything but hahaa openCV go brrrrr
 input_filename = argv[argv.index('-i') + 1]
-cap = cv2.VideoCapture(input_filename)
-cv2.setUseOptimized(True) # no idea if this does anything but hahaa openCV go brrrrr
+try:
+    source = int(input_filename)
+except:
+    source = input_filename
+
+cap = cv2.VideoCapture(source)
 if (cap.isOpened() == False):
     raise SystemExit(f"Error opening input file {input_filename}")
+
 
 # Set output directory to whatever was passed in with the -o option
 output_directory = argv[argv.index('-o') + 1] if '-o' in argv else None
@@ -128,8 +134,8 @@ while(cap.isOpened()):
         # Display the resulting frame
         cv2.imshow('Frame', images)
 
-    if cv2.waitKey(25) & 0xFF == ord('q'): # Press Q to exit 
-        break
+        if cv2.waitKey(25) & 0xFF == ord('q'): # Press Q to exit 
+            break
 
     else:
         break
