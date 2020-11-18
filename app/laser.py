@@ -99,9 +99,28 @@ def save_coe(path, trajectory):
     with open(filename, 'w') as output_file:
         output_file.writelines(output_lines)
 
+def save_traj(path, trajectory):
+    files = [i for i in os.listdir(path) if '.traj' in i]
+    filename = f'{path}/{len(files)}.traj'
+    
+    output_lines = []
+
+    input_lines = trajectory.tolist()
+    for input_line_number, input_line in enumerate(input_lines):
+        x, y, r, g, b = [format(int(i), 'x') for i in input_line]
+
+        if input_line_number == len(input_lines) - 1:
+            output_lines.append( zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2))
+
+        else:
+            output_lines.append( zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2) + '\n')
+
+    with open(filename, 'w') as output_file:
+        output_file.writelines(output_lines)
+
 def send_trajectory(trajectory, iface):
     input_lines = trajectory.tolist()
-
+    packet_list = []
     for input_line in input_lines:
         x, y, r, g, b = [format(int(i), 'x') for i in input_line]
         data = zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2)
@@ -111,7 +130,9 @@ def send_trajectory(trajectory, iface):
         packet.dst = "b8:27:eb:a4:30:73"
         packet.type = 0x2345
         packet = packet / data
-        sendp(packet, iface=iface)
+        packet_list.append(packet)
+
+    sendp(packet_list, iface=iface)
 
 while(cap.isOpened()):
     ret, frame = cap.read()
@@ -135,7 +156,7 @@ while(cap.isOpened()):
 
         # Write frame over the network if option specified
         if '-n' in argv:
-            send_trajectory(colorized_trajectory, 'enx00e04c712abc')
+            send_trajectory(colorized_trajectory, 'enx4ce173424b8b')
 
         # Save the frame if option specified
         if 'png' in output_types:
@@ -146,6 +167,9 @@ while(cap.isOpened()):
 
         if 'coe' in output_types:
             save_coe(output_directory, colorized_trajectory)
+        
+        if 'traj' in output_types:
+            save_traj(output_directory, colorized_trajectory)
         
 
         # Display the resulting frame
