@@ -39,7 +39,7 @@ always_ff @(posedge clock_in) begin
     if (!reset_in && busy_out)begin
         // if we're not resetting, check if we need to start sending out data
         if (prescale_counter == 0) begin
-            mosi_out <= data_in[data_index];
+            mosi_out <= data_in[data_length_in - 1 - data_index];
         end
         
         if (prescale_counter == PRESCALER/2) begin

@@ -11,7 +11,8 @@ import cv2
 import numpy as np
 import trajectory_planner as tp
 import os
-import pandas as pd
+#import pandas as pd
+from scapy.all import *
 
 if len(argv) == 1:
     raise SystemExit("No options specified. Try 'laser.py -h' for more information.")
@@ -98,6 +99,20 @@ def save_coe(path, trajectory):
     with open(filename, 'w') as output_file:
         output_file.writelines(output_lines)
 
+def send_trajectory(trajectory, iface):
+    input_lines = trajectory.tolist()
+
+    for input_line in input_lines:
+        x, y, r, g, b = [format(int(i), 'x') for i in input_line]
+        data = zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2)
+
+        packet = Ether()
+        packet.src = "00:e0:4c:71:2a:bc"
+        packet.dst = "b8:27:eb:a4:30:73"
+        packet.type = 0x2345
+        packet = packet / data
+        sendp(packet, iface=iface)
+
 while(cap.isOpened()):
     ret, frame = cap.read()
     if ret == True:
@@ -119,6 +134,8 @@ while(cap.isOpened()):
         images = np.hstack((frame, edges_filtered_colored, rendered_trajectory))
 
         # Write frame over the network if option specified
+        if '-n' in argv:
+            send_trajectory(colorized_trajectory, 'enx00e04c712abc')
 
         # Save the frame if option specified
         if 'png' in output_types:
