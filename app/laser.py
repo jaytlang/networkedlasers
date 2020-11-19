@@ -65,6 +65,29 @@ for arg in argv[argv.index('-t')+1:]:
 # Set network address to whatever was passed in with the -n option
 network_address = argv[argv.index('-n') + 1] if '-n' in argv else None
 
+def prep_frame(frame, desired_x_resolution, desired_y_resolution):
+    # idea is that we can send a code to the DAC between 0 and 2*16 - 1
+    # however we can take in inputs of arbitrary size and resolution, so to make
+    # image processing not take forever we want to resize the image to some reasonable
+    # resolution (like 512x512) and then run trajectory planning on that, and then
+    # rescale afterwards to some desired image size
+
+    # this function resizes the image so that it fits within a frame of specified size
+    # it does preserve aspect ratio and doesn't add any bordering, so while
+    # the x or y of the returned image will be at maximum, they both won't be unless
+    # the image is already at the desired aspect ratio
+
+    x_resolution = frame.shape[0]
+    y_resolution = frame.shape[1]
+
+    x_scale_factor = desired_x_resolution/x_resolution
+    y_scale_factor = desired_y_resolution/y_resolution
+
+    if x_scale_factor > y_scale_factor:
+        return cv2.resize(frame, None, fx=y_scale_factor, fy=y_scale_factor)
+
+    else:
+        return cv2.resize(frame, None, fx=x_scale_factor, fy=x_scale_factor)
 
 def save_png(path, image):
     files = [i for i in os.listdir(path) if '.png' in i]
@@ -82,7 +105,7 @@ def zero_pad(input_str, length):
 def save_coe(path, trajectory):
     files = [i for i in os.listdir(path) if '.coe' in i]
     filename = f'{path}/{len(files)}.coe'
-    
+
     output_lines = ['memory_initialization_radix=16;\n','memory_initialization_vector=\n']
 
     input_lines = trajectory.tolist()
@@ -102,7 +125,7 @@ def save_coe(path, trajectory):
 def save_traj(path, trajectory):
     files = [i for i in os.listdir(path) if '.traj' in i]
     filename = f'{path}/{len(files)}.traj'
-    
+
     output_lines = []
 
     input_lines = trajectory.tolist()
@@ -136,6 +159,7 @@ def send_trajectory(trajectory, iface):
 
 while(cap.isOpened()):
     ret, frame = cap.read()
+    frame = prep_frame(frame, 512, 512)
     if ret == True:
         # Canny filtering
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)        # Converting the image to grayscale.
@@ -167,15 +191,15 @@ while(cap.isOpened()):
 
         if 'coe' in output_types:
             save_coe(output_directory, colorized_trajectory)
-        
+
         if 'traj' in output_types:
             save_traj(output_directory, colorized_trajectory)
-        
+
 
         # Display the resulting frame
         cv2.imshow('Frame', images)
 
-        if cv2.waitKey(25) & 0xFF == ord('q'): # Press Q to exit 
+        if cv2.waitKey(25) & 0xFF == ord('q'): # Press Q to exit
             break
 
     else:

@@ -4,6 +4,7 @@ lasers_project/
 app/output/*.csv
 app/output/*.png
 app/output/*.jpg
+app/output/*.tar.xz
 *.tmp
 
 pcb/History/
