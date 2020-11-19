@@ -26,7 +26,13 @@ module mac_tx_ifc(
     /* All preliminary assignments here */
 
     /* All submodules here */
-
+    /* Suggested ILA configuration:
+    tx_ifc_ila      ila(.clk(clk),
+                        .probe0(state),
+                        .probe1(tx_axi_data),
+                        .probe2(tx_axi_valid),
+                        .probe3(tx_axi_ready));
+    */
     /* All clocked logic here */
     always_ff @(posedge clk) begin
         if(rst == 1'b1) begin
