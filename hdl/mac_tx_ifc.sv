@@ -38,18 +38,19 @@ module mac_tx_ifc(
             available <= 1;
         end else begin
             if(state == ST_WAIT) begin
-                available <= 1;
 
                 if(doorbell == 1'b1) begin
                     // Prepare for transit
                     state <= ST_TX;
                     pktbuf_addr <= 0;
                     bytectr <= 0;
+                    available <= 0;
                 end else begin
                     // Idle time
                     state <= ST_WAIT;
                     pktbuf_addr <= 0;
                     bytectr <= 0;
+                    available <= 1;
                 end
 
                 tx_axi_valid <= 0;
