@@ -8,7 +8,7 @@ module mac_tx_ifc(
                   output logic tx_axi_valid,
                   output logic[1:0] tx_axi_data,
 
-                  input logic[1517:0][7:0] pktbuf,
+                  input logic[7:0] pktbuf[1517:0],
                   input logic[10:0] pktbuf_maxaddr,
                   input logic doorbell,
                   output logic available
@@ -26,7 +26,13 @@ module mac_tx_ifc(
     /* All preliminary assignments here */
 
     /* All submodules here */
-
+    /* Suggested ILA configuration:
+    tx_ifc_ila      ila(.clk(clk),
+                        .probe0(state),
+                        .probe1(tx_axi_data),
+                        .probe2(tx_axi_valid),
+                        .probe3(tx_axi_ready));
+    */
     /* All clocked logic here */
     always_ff @(posedge clk) begin
         if(rst == 1'b1) begin
@@ -38,18 +44,19 @@ module mac_tx_ifc(
             available <= 1;
         end else begin
             if(state == ST_WAIT) begin
-                available <= 1;
 
                 if(doorbell == 1'b1) begin
                     // Prepare for transit
                     state <= ST_TX;
                     pktbuf_addr <= 0;
                     bytectr <= 0;
+                    available <= 0;
                 end else begin
                     // Idle time
                     state <= ST_WAIT;
                     pktbuf_addr <= 0;
                     bytectr <= 0;
+                    available <= 1;
                 end
 
                 tx_axi_valid <= 0;

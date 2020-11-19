@@ -36,7 +36,9 @@ module mac_tx(
     logic[1:0]  stepwise_crc;
 
     /* All preliminary assignments here */
-
+    assign is_calculation_cycle = (state == ST_DATA && (axi_valid || counter < MIN_DATA_DIBITS))
+                                  || (state == ST_PREAMBLE && counter == PREAMBLE_DIBITS)
+                                  || (state == ST_PAD && counter < MIN_DATA_DIBITS);
     /* All submodules here */
     crc32_bzip2     tx_crc(.clk(clk),
                            .reset(reset),
@@ -46,8 +48,8 @@ module mac_tx(
                            .init(soft_reset),
                            .crc_reg(cumulative_crc),
                            .crc(stepwise_crc));
-    /*
-    Suggested ILA configuration:
+
+    /* Suggested ILA configuration:
     tx_ila          tila(.clk(clk),
                          .probe0(axi_din),
                          .probe1(state),
@@ -55,7 +57,7 @@ module mac_tx(
                          .probe3(axi_valid),
                          .probe4(phy_txen),
                          .probe5(stepwise_crc),
-                         .probe6(counter));
+                         .probe6(cumulative_crc));
     */
 
     /* All clocked logic here */
@@ -67,7 +69,6 @@ module mac_tx(
 
             counter <= 32'd1;
             state <= ST_IDLE;
-            is_calculation_cycle <= 1'b0;
             is_valid_cycle <= 1'b0;
             soft_reset <= 1'b0;
 
@@ -84,7 +85,6 @@ module mac_tx(
                 phy_txen <= 1'b0;
                 phy_txd <= 2'b0;
 
-                is_calculation_cycle <= 1'b0;
                 is_valid_cycle <= 1'b0;
                 soft_reset <= 1'b1;
 
@@ -95,7 +95,6 @@ module mac_tx(
                     state <= ST_DATA;
                     soft_reset <= 1'b0;
                     axi_ready <= 1'b1;
-                    is_calculation_cycle <= 1'b1;
                     is_valid_cycle <= 1'b1;
                 end else begin
                     phy_txd <= 2'b01;
@@ -103,7 +102,6 @@ module mac_tx(
                     state <= ST_PREAMBLE;
                     soft_reset <= 1'b1;
                     axi_ready <= 1'b0;
-                    is_calculation_cycle <= 1'b0;
                     is_valid_cycle <= 1'b0;
                 end
 
@@ -116,13 +114,11 @@ module mac_tx(
                         state <= ST_PAD;
                         phy_txd <= 2'b00;
                         counter <= counter + 1;
-                        is_calculation_cycle <= 1'b1;
                     end else begin
 
                         state <= ST_VERIFY;
                         phy_txd <= stepwise_crc;
                         counter <= 32'd1;
-                        is_calculation_cycle <= 1'b0;
                     end
 
                     axi_ready <= 1'b0;
@@ -131,7 +127,6 @@ module mac_tx(
                     state <= ST_DATA;
                     phy_txd <= axi_din;
                     counter <= counter + 1;
-                    is_calculation_cycle <= 1'b1;
                     axi_ready <= 1'b1;
                 end
                 is_valid_cycle <= 1'b1;
@@ -144,12 +139,10 @@ module mac_tx(
                     phy_txd <= 2'b00;
                     counter <= counter + 1;
                     state <= ST_PAD;
-                    is_calculation_cycle <= 1'b1;
                 end else begin
                     phy_txd <= stepwise_crc;
                     counter <= 32'd1;
                     state <= ST_VERIFY;
-                    is_calculation_cycle <= 1'b0;
                 end
 
                 is_valid_cycle <= 1'b1;
@@ -159,7 +152,7 @@ module mac_tx(
 
 
             end else if(state == ST_VERIFY) begin
-                if(counter < CRC_DIBITS) begin
+                if(counter <= CRC_DIBITS) begin
                     phy_txen <= 1'b1;
                     phy_txd <= stepwise_crc;
                     counter <= counter + 1;
@@ -168,7 +161,7 @@ module mac_tx(
                     is_valid_cycle <= 1'b1;
                 end else begin
                     phy_txen <= 1'b1;
-                    phy_txd <= stepwise_crc;
+                    phy_txd <= 2'b11;
                     counter <= 32'd1;
                     state <= ST_IFRAME_GAP;
                     soft_reset <= 1'b1;
@@ -176,7 +169,6 @@ module mac_tx(
                 end
 
                 axi_ready <= 1'b0;
-                is_calculation_cycle <= 1'b0;
 
             end else if(state == ST_IFRAME_GAP) begin
                 if(counter == IFG_PERIOD) begin
@@ -190,7 +182,6 @@ module mac_tx(
                 axi_ready <= 1'b0;
                 phy_txen <= 1'b0;
                 phy_txd <= 2'b00;
-                is_calculation_cycle <= 1'b0;
                 is_valid_cycle <= 1'b0;
                 soft_reset <= 1'b1;
 

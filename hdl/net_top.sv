@@ -23,7 +23,7 @@ module net_top_tx(
     parameter ST_PUSH = 2'd1;
     parameter ST_CONFIRM = 2'd2;
 
-    /* Ethernet header */
+    // Ethernet header
     parameter ETH_DST_MIN = 0;
     parameter ETH_DST_MAX = 5;
     parameter ETH_SRC_MIN = 6;
@@ -31,15 +31,27 @@ module net_top_tx(
     parameter ETH_ETYPE_MIN = 12;
     parameter ETH_ETYPE_MAX = 13;
 
-    /* Ethernet offsets */
+    // Ethernet offsets
     parameter ETH_DATA_START = 14;
     parameter ETH_MTU = 1518;
-    parameter ETH_ADDRSZ = 6;
+    parameter ETH_ADDRSZ = 8'h06;
 
-    /* Ethernet parameters */
-    parameter ETH_ECHOSVC_ETYPE = 16'h1234;
-    parameter ETH_MYADDR = 48'hb8_27_eb_a4_30_73;
+    // Ethernet parameters
+    parameter ETH_ARP_ETYPE_1 = 8'h08;
+    parameter ETH_ARP_ETYPE_2 = 8'h06;
 
+    parameter ETH_ECHOSVC_ETYPE_1 = 8'h12;
+    parameter ETH_ECHOSVC_ETYPE_2 = 8'h34;
+
+    parameter ETH_MYADDR_1 = 8'hb8;
+    parameter ETH_MYADDR_2 = 8'h27;
+    parameter ETH_MYADDR_3 = 8'heb;
+    parameter ETH_MYADDR_4 = 8'ha4;
+    parameter ETH_MYADDR_5 = 8'h30;
+    parameter ETH_MYADDR_6 = 8'h73;
+
+
+    /* All logics here */
     // No reset
     logic sys_clk;
     logic sys_rst;
@@ -51,39 +63,30 @@ module net_top_tx(
     logic tx_axi_valid;
     logic[1:0] tx_axi_din;
 
-    logic[1517:0][7:0] rx_pktbuf;
+    logic[7:0] rx_pktbuf[ETH_MTU - 1:0];
     logic[10:0] rx_pktbuf_maxaddr;
     logic rx_doorbell;
 
     logic tx_available;
 
-    /* DEBUG
-    logic[15:0] eth_vitro_type;
-    */
-
     // Reset required
-    logic[1517:0][7:0] tx_pktbuf;
+    logic[7:0] tx_pktbuf[ETH_MTU - 1:0];
     logic[10:0] tx_pktbuf_maxaddr;
     logic tx_doorbell;
     logic[1:0] state;
-
 
     /* All preliminary assignments here */
     assign eth_refclk = sys_clk;
     assign sys_rst = btnc;
     assign eth_rstn = !btnc;
-    /*
-    assign eth_vitro_type = rx_pktbuf[ETH_ETYPE_MAX:ETH_ETYPE_MIN];
-    */
 
     /* All submodules here */
-    /*
+    /* Suggested ILA configurations:
     eth_ila             ila(.clk(sys_clk),
                             .probe0(state),
                             .probe1(eth_txen),
                             .probe2(eth_txd),
-                            .probe3(eth_rxd),
-                            .probe4(eth_vitro_type));
+                            .probe3(eth_rxd));
     */
 
     eth_refclk_divider  erd(.in(clk_100mhz),
@@ -126,11 +129,15 @@ module net_top_tx(
 
     /* Clocked logic here */
     always_ff @(posedge sys_clk) begin
+
+        /* Main system runtime loop */
         if(sys_rst == 1'b1) begin
-            tx_pktbuf <= 0;
+            foreach(tx_pktbuf[i]) tx_pktbuf[i] <= 0;
             tx_pktbuf_maxaddr <= 0;
             tx_doorbell <= 0;
             state <= ST_PULL;
+            led[15:0] <= 0;
+
         end else begin
             if(state == ST_PULL) begin
                 // Don't transmit right now.
@@ -142,21 +149,26 @@ module net_top_tx(
                     // They will stay valid for ~48 clock cycles, so this
                     // approach will work for some L3 protocols.
 
-                    // Echo server: flip MAC addresses for response tx.
-                    // Service type is 0x1234
-                    if(rx_pktbuf[ETH_ETYPE_MAX:ETH_ETYPE_MIN] == ETH_ECHOSVC_ETYPE) begin
-                        tx_pktbuf[5:0] <= rx_pktbuf[11:6];
-                        tx_pktbuf[11:6] <= rx_pktbuf[5:0];
-                        tx_pktbuf[1517:12] <= rx_pktbuf[1517:12];
+                    // Get the ethertype of the packet and check it
+                    // Currently supported services are ARP and ECHOSVC
+
+                    if(rx_pktbuf[ETH_ETYPE_MAX] == ETH_ECHOSVC_ETYPE_2 &&
+                                rx_pktbuf[ETH_ETYPE_MIN] == ETH_ECHOSVC_ETYPE_1) begin
+                        // Echo service. Ethertype 1234.
+                        // Swap MAC address and ping the client back.
+                        tx_pktbuf[ETH_DST_MAX:ETH_DST_MIN] <= rx_pktbuf[ETH_SRC_MAX:ETH_SRC_MIN];
+                        tx_pktbuf[ETH_SRC_MAX:ETH_SRC_MIN] <= rx_pktbuf[ETH_DST_MAX:ETH_DST_MIN];
+                        tx_pktbuf[ETH_MTU - 1:ETH_ETYPE_MIN] <= rx_pktbuf[ETH_MTU - 1:ETH_ETYPE_MIN];
 
                         tx_pktbuf_maxaddr <= rx_pktbuf_maxaddr;
+                        led[15:0] <= 16'hff;
                         state <= ST_PUSH;
 
-                    // Unknown ethertype, drop the packet
                     end else begin
+                        // Unknown ethertype. Drop packet.
                         state <= ST_CONFIRM;
+                        led[15:0] <= 16'h00;
                     end
-
                 end // else don't do anything lol
 
             end else if(state == ST_PUSH) begin
