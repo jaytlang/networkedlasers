@@ -56,14 +56,15 @@ output_directory = argv[argv.index('-o') + 1] if '-o' in argv else None
 
 # Set output type to whatever was passed in with the -t option
 output_types = []
-for arg in argv[argv.index('-t')+1:]:
-    if len(arg) != 2 and '-' not in arg:
-        output_types.append(arg)
-    else:
-        break
+if '-t' in output_types:
+    for arg in argv[argv.index('-t')+1:]:
+        if len(arg) != 2 and '-' not in arg:
+            output_types.append(arg)
+        else:
+            break
 
 # Set network address to whatever was passed in with the -n option
-network_address = argv[argv.index('-n') + 1] if '-n' in argv else None
+#network_address = argv[argv.index('-n') + 1] if '-n' in argv else None
 
 def prep_frame(frame, desired_x_resolution, desired_y_resolution):
     # idea is that we can send a code to the DAC between 0 and 2*16 - 1
@@ -149,7 +150,7 @@ def send_trajectory(trajectory, iface):
         data = zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2)
 
         packet = Ether()
-        packet.src = "00:e0:4c:71:2a:bc"
+        packet.src = "10:65:30:b8:05:73"
         packet.dst = "b8:27:eb:a4:30:73"
         packet.type = 0x2345
         packet = packet / data
@@ -180,7 +181,7 @@ while(cap.isOpened()):
 
         # Write frame over the network if option specified
         if '-n' in argv:
-            send_trajectory(colorized_trajectory, 'enx4ce173424b8b')
+            send_trajectory(colorized_trajectory, 'enx106530b80573')
 
         # Save the frame if option specified
         if 'png' in output_types:
