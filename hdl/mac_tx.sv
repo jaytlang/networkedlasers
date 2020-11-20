@@ -21,7 +21,7 @@ module mac_tx(
     parameter ST_IFRAME_GAP     = 3'h5;
 
     parameter PREAMBLE_DIBITS   = 32;
-    parameter MIN_DATA_DIBITS   = 184;
+    parameter MIN_DATA_DIBITS   = 240;
     parameter CRC_DIBITS        = 16;
     parameter IFG_PERIOD        = 48;
 
@@ -54,10 +54,11 @@ module mac_tx(
                          .probe0(axi_din),
                          .probe1(state),
                          .probe2(phy_txd),
-                         .probe3(axi_valid),
+                         .probe3(is_calculation_cycle),
                          .probe4(phy_txen),
                          .probe5(stepwise_crc),
-                         .probe6(cumulative_crc));
+                         .probe6(counter));
+
     */
 
     /* All clocked logic here */

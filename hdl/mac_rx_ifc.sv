@@ -39,7 +39,7 @@ module mac_rx_ifc(
                 if(rx_axi_valid == 1'b1) begin
                     state <= ST_RX;
                     bytectr <= 2;
-                    pktbuf[pktbuf_addr][bytectr +: 2] <= rx_axi_data;
+                    foreach(pktbuf[i]) pktbuf[i] <= (i == 0) ? {6'b0,rx_axi_data} : 0;
                     pktbuf_addr <= 0;
                     pktbuf_maxaddr <= 0;
                     doorbell <= 0;

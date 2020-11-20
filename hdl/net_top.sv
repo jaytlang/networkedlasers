@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 /* Top level networking stack module */
-module net_top_tx(
+module net_top(
     input logic         clk_100mhz,
 
     input logic         btnc,
@@ -268,7 +268,7 @@ module net_top_tx(
 
                                     tx_pktbuf[ARP_TPA_MAX:ARP_TPA_MIN] <= rx_pktbuf[ARP_SPA_MAX:ARP_SPA_MIN];
 
-                                    // Done. Send the packet.
+                                    // Done. Send the packet with proper padding
                                     tx_pktbuf_maxaddr <= ARP_HDR_END;
                                     state <= ST_PUSH;
                                 end else begin
