@@ -1,0 +1,10 @@
+Output: Electrical Rules Check
+Type  : ERC
+From  : Project [projector_board.PrjPcb]
+   Generated File[projector_board.html]
+
+
+Files Generated   : 1
+Documents Printed : 0
+
+Finished Output Generation At 8:43:29 PM On 11/15/2020

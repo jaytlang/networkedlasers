@@ -1,11 +1,12 @@
 `timescale 1ns / 1ps
 
 /* Top level networking stack module */
-module net_top_tx(
+module net_top(
     input logic         clk_100mhz,
 
     input logic         btnc,
-    input logic         btnu,
+    input logic[15:0]   sw,
+    input logic[7:0]    ja, jb, jc, jd,
 
     input logic         eth_crsdv,
     input logic[1:0]    eth_rxd,
@@ -13,9 +14,7 @@ module net_top_tx(
     output logic        eth_txen,
     output logic[1:0]   eth_txd,
     output logic        eth_refclk,
-    output logic        eth_rstn,
-
-    output logic[15:0] led
+    output logic        eth_rstn
     );
 
     /* All parameters here */
@@ -81,13 +80,30 @@ module net_top_tx(
     assign eth_rstn = !btnc;
 
     /* All submodules here */
-    /* Suggested ILA configurations:
+    /* Suggested [networking] ILA configurations:
     eth_ila             ila(.clk(sys_clk),
                             .probe0(state),
                             .probe1(eth_txen),
                             .probe2(eth_txd),
                             .probe3(eth_rxd));
     */
+
+    display_controller  dctl(.reset_in(sys_rst),
+                             .clock_in(sys_clk),
+                             .frame_delay(sw),
+                             .net_in(rx_pktbuf),
+                             .net_in_valid(rx_doorbell),
+                             .x_sclk(ja[3]),
+                             .x_mosi(ja[1]),
+                             .x_cs(ja[0]),
+                             .y_sclk(jb[3]),
+                             .y_mosi(jb[1]),
+                             .y_cs(jb[0]),
+                             .r_pwm(jc[0]),
+                             .g_pwm(jc[1]),
+                             .b_pwm(jc[2]),
+                             .frame_sync(jc[3]));
+
 
     eth_refclk_divider  erd(.in(clk_100mhz),
                             .out(sys_clk),
@@ -136,7 +152,6 @@ module net_top_tx(
             tx_pktbuf_maxaddr <= 0;
             tx_doorbell <= 0;
             state <= ST_PULL;
-            led[15:0] <= 0;
 
         end else begin
             if(state == ST_PULL) begin
@@ -161,13 +176,11 @@ module net_top_tx(
                         tx_pktbuf[ETH_MTU - 1:ETH_ETYPE_MIN] <= rx_pktbuf[ETH_MTU - 1:ETH_ETYPE_MIN];
 
                         tx_pktbuf_maxaddr <= rx_pktbuf_maxaddr;
-                        led[15:0] <= 16'hff;
                         state <= ST_PUSH;
 
                     end else begin
                         // Unknown ethertype. Drop packet.
                         state <= ST_CONFIRM;
-                        led[15:0] <= 16'h00;
                     end
                 end // else don't do anything lol
 
