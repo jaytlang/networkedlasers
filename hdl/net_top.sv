@@ -6,7 +6,10 @@ module net_top(
 
     input logic         btnc,
     input logic[15:0]   sw,
-    input logic[7:0]    ja, jb, jc, jd,
+    output logic[7:0]   ja, jb, jc, jd,
+
+    output logic [7:0]  an,
+    output logic        ca, cb, cc, cd, ce, cf, cg, dp,
 
     input logic         eth_crsdv,
     input logic[1:0]    eth_rxd,
@@ -88,21 +91,34 @@ module net_top(
                             .probe3(eth_rxd));
     */
 
+    logic [31:0] display_data;
+    assign display_data = {rx_pktbuf[ETH_DATA_START], rx_pktbuf[ETH_DATA_START+1], rx_pktbuf[ETH_DATA_START+2], rx_pktbuf[ETH_DATA_START+3]};
+    
+    
     display_controller  dctl(.reset_in(sys_rst),
                              .clock_in(sys_clk),
                              .frame_delay(sw),
-                             .net_in(rx_pktbuf),
-                             .net_in_valid(rx_doorbell),
+                             .pkt_buf_in(rx_pktbuf),
+                             .pkt_buf_doorbell_in(rx_doorbell),
+
                              .x_sclk(ja[3]),
                              .x_mosi(ja[1]),
                              .x_cs(ja[0]),
                              .y_sclk(jb[3]),
                              .y_mosi(jb[1]),
                              .y_cs(jb[0]),
+                             
                              .r_pwm(jc[0]),
                              .g_pwm(jc[1]),
                              .b_pwm(jc[2]),
                              .frame_sync(jc[3]));
+
+    logic [6:0] segments;
+    assign {cg, cf, ce, cd, cc, cb, ca} = segments[6:0];
+    hex_display           hd(.clk_in(sys_clk),
+                             .data_in(display_data),
+                             .seg_out(segments),
+                             .strobe_out(an));
 
 
     eth_refclk_divider  erd(.in(clk_100mhz),

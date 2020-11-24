@@ -145,17 +145,34 @@ def send_trajectory(trajectory, iface):
     input_lines = trajectory.tolist()
     packet_list = []
     for input_line in input_lines:
-        x, y, r, g, b = [format(int(i), 'x') for i in input_line]
+        x, y, r, g, b = [int(i) for i in input_line]
+        x = format(x*128, 'x') 
+        y = format(65535 - (y*128), 'x') # mirror y because galvos are oriented wierdly
+
+        r = format(r, 'x') 
+        g = format(g, 'x') 
+        b = format(b, 'x') 
         data = zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2)
 
         packet = Ether()
-        packet.src = "00:e0:4c:71:2a:bc"
         packet.dst = "b8:27:eb:a4:30:73"
-        packet.type = 0x2345
-        packet = packet / data
+        packet.type = 0x1234
+        packet = packet / bytes.fromhex(data)
         packet_list.append(packet)
+        #print('x:,', x, ' y:', y)
+        #print(bytes.fromhex(data))
+        #sendp(packet, iface=iface)
+        #exit()
+
+    # send packet to switch to other framebuffer
+    packet = Ether()
+    packet.dst = "b8:27:eb:a4:30:73"
+    packet.type = 0x1234
+    packet = packet / bytes.fromhex('ffffffffffffff')
+    packet_list.append(packet)
 
     sendp(packet_list, iface=iface)
+    #exit()
 
 while(cap.isOpened()):
     ret, frame = cap.read()
@@ -178,10 +195,7 @@ while(cap.isOpened()):
         #planned_colored = cv2.cvtColor(planned, cv2.COLOR_GRAY2BGR)
         images = np.hstack((frame, edges_filtered_colored, rendered_trajectory))
 
-        # Write frame over the network if option specified
-        if '-n' in argv:
-            send_trajectory(colorized_trajectory, 'enx4ce173424b8b')
-
+        
         # Save the frame if option specified
         if 'png' in output_types:
             save_png(output_directory, rendered_trajectory)
@@ -195,6 +209,9 @@ while(cap.isOpened()):
         if 'traj' in output_types:
             save_traj(output_directory, colorized_trajectory)
 
+        # Write frame over the network if option specified
+        if '-n' in argv:
+            send_trajectory(colorized_trajectory, 'enx106530b80573')
 
         # Display the resulting frame
         cv2.imshow('Frame', images)
