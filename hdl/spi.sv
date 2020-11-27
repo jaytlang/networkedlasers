@@ -13,7 +13,7 @@ module spi(
     output logic        cs_out
 );
 
-parameter PRESCALER = 1000;
+parameter PRESCALER = 100;
 logic [12:0] prescale_counter;
 logic [5:0]  data_index;
 

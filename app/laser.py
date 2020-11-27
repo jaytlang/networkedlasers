@@ -144,35 +144,40 @@ def save_traj(path, trajectory):
 def send_trajectory(trajectory, iface):
     input_lines = trajectory.tolist()
     packet_list = []
-    for input_line in input_lines:
-        x, y, r, g, b = [int(i) for i in input_line]
-        x = format(x*128, 'x') 
-        y = format(65535 - (y*128), 'x') # mirror y because galvos are oriented wierdly
 
-        r = format(r, 'x') 
-        g = format(g, 'x') 
-        b = format(b, 'x') 
-        data = zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2)
+    # Packet format is as follows:
+    # Control (1 byte) - either 0x01 for adding to framebuffer, or 0x02 to swap framebuffers. Other values are invalid.
+    # x (2 bytes)
+    # y (2 bytes)
+    # r (1 byte)
+    # g (1 byte)
+    # b (1 byte)
+
+    # Total: 8 bytes
+
+    for input_line_number, input_line in enumerate(input_lines):
+        x, y, r, g, b = [int(i) for i in input_line]
+
+        control = '02' if input_line_number == len(input_lines) - 1 else '01'
+
+        x = format(65535 - (x*128), 'x')
+        y = format(65535 - (y*128), 'x') # mirror y because galvos are oriented wierdly
+        r = format(r, 'x')
+        g = format(g, 'x')
+        b = format(b, 'x')
+
+        data = control + zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2)
 
         packet = Ether()
         packet.dst = "b8:27:eb:a4:30:73"
         packet.type = 0x1234
         packet = packet / bytes.fromhex(data)
         packet_list.append(packet)
-        #print('x:,', x, ' y:', y)
-        #print(bytes.fromhex(data))
-        #sendp(packet, iface=iface)
+        #print(control, x, y, r, g, b)
+        #sendp(packet_list, iface=iface)
         #exit()
+    sendp(packet_list[:-1:6] + [packet_list[-1]], iface=iface)
 
-    # send packet to switch to other framebuffer
-    packet = Ether()
-    packet.dst = "b8:27:eb:a4:30:73"
-    packet.type = 0x1234
-    packet = packet / bytes.fromhex('ffffffffffffff')
-    packet_list.append(packet)
-
-    sendp(packet_list, iface=iface)
-    #exit()
 
 while(cap.isOpened()):
     ret, frame = cap.read()
@@ -195,7 +200,7 @@ while(cap.isOpened()):
         #planned_colored = cv2.cvtColor(planned, cv2.COLOR_GRAY2BGR)
         images = np.hstack((frame, edges_filtered_colored, rendered_trajectory))
 
-        
+
         # Save the frame if option specified
         if 'png' in output_types:
             save_png(output_directory, rendered_trajectory)

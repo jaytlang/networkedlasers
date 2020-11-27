@@ -20,7 +20,7 @@ def draw_trajectory(template, trajectory, color=(255,0,0), popup=False):
             cv2.imshow('render.png', render)
             cv2.waitKey()
         return render
-    
+
     if depth == 5: # trajectory is colored, BGR values are present
         render = template
         for row in trajectory:
@@ -45,15 +45,45 @@ def animate_trajectory(template, contour, speed):
         if cv2.waitKey(5) & 0xFF == ord('q'):
             break
 
+def animate_trajectory_with_jumps(template, contour, speed):
+    formatted_contour = np.expand_dims(contour, 1)
+    total_jumps = 0
+    total_jump_distance = 0
+
+    for i in range(0, len(formatted_contour), speed):
+        current_x = contour[i][0]
+        current_y = contour[i][1]
+        next_x = contour[i+1][0]
+        next_y = contour[i+1][1]
+
+        if is_adjacent(current_x, current_y, next_x, next_y):
+            template[current_y, current_x] = (0, 255, 0)
+
+        else:
+            template = cv2.line(template,(current_x, current_y),(next_x, next_y),(0,0,255),1)
+            total_jumps += 1
+            total_jump_distance += np.sqrt((current_x-next_x)**2 + (current_y-next_y)**2)
+
+        width = template.shape[0]
+        height = template.shape[1]
+        thicco = cv2.resize(template, (width*3, height*3), interpolation = cv2.INTER_AREA)
+        cv2.imshow('labeled.png', thicco)
+        print(f'total jumps: {total_jumps}')
+        print(f'total distance jumped: {total_jump_distance}px')
+
+        # Press Q on keyboard to  exit
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            break
+
 # Image Processing Functions
 def colorize_trajectory(img, trajectory):
     num_points, _ = trajectory.shape
     colors = np.zeros((num_points, 3), dtype=int)
-    
+
     for i in range(num_points):
         y, x = trajectory[i]
         colors[i] = img[x,y]
-    
+
     return np.hstack((trajectory, colors))
 
 def calculate_trajectory(img, start_x=0, start_y=0):
@@ -61,7 +91,7 @@ def calculate_trajectory(img, start_x=0, start_y=0):
     # also export an array of all the degenercies found in the image
     binary_img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)[1]  # ensure binary
     contours = find_contours(binary_img)
-    
+
     # if there aren't any contours in the image, just return nothing
     if len(contours) == 0:
         return np.asarray([[0, 0]]), np.asarray([])
@@ -79,11 +109,11 @@ def calculate_trajectory(img, start_x=0, start_y=0):
         next_contour_ordered, next_degeneracies = order_contour(next_contour_ordered)
         remaining_contours.remove(next_contour_unordered.tolist())
         output_trajectory.append(next_contour_ordered)
-        
+
         if next_degeneracies.tolist():
             for degeneracy in next_degeneracies.tolist():
                 degeneracies.append(degeneracy)
-            
+
         current_x = output_trajectory[-1][-1][0]
         current_y = output_trajectory[-1][-1][1]
 
@@ -139,7 +169,7 @@ def find_next_point(points, x, y):
         if is_adjacent(x, y, point[0], point[1], adjacency='four_level'):
             return point
 
-    
+
     for point in points:
         if is_adjacent(x, y, point[0], point[1], adjacency='eight_level'):
             return point

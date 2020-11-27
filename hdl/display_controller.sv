@@ -57,7 +57,8 @@ module display_controller(
     assign current_flattened_packet = {pkt_buf_in[ETH_DATA_START-1], pkt_buf_in[ETH_DATA_START], 
                                        pkt_buf_in[ETH_DATA_START+1], pkt_buf_in[ETH_DATA_START+2],
                                        pkt_buf_in[ETH_DATA_START+3], pkt_buf_in[ETH_DATA_START+4],
-                                       pkt_buf_in[ETH_DATA_START+5], pkt_buf_in[ETH_DATA_START+6], 8'hFF};
+                                       pkt_buf_in[ETH_DATA_START+5], pkt_buf_in[ETH_DATA_START+6],
+                                       pkt_buf_in[ETH_DATA_START+7]};
 
     // SPI controllers
     logic x_start, y_start;
@@ -107,19 +108,29 @@ module display_controller(
             // state machine that takes data from the packet buffer and stashes it in BRAM
             
             if (pkt_buf_doorbell_in && !old_pkt_buf_doorbell) begin
-                // switch BRAM if we need to
-                bram_select <= current_flattened_packet == 64'hFFFFFFFFFFFFFFFF ? !bram_select : bram_select;
-                
                 // load into BRAM
-                bram_0_data_in <= current_flattened_packet;
-                bram_1_data_in <= current_flattened_packet;
+                if(bram_select) begin
+                    bram_0_data_in <= current_flattened_packet;
+                    bram_0_addr <= bram_0_addr + 1;
+                    bram_0_max_addr <= bram_0_addr + 1;
+                end else begin
+                    bram_1_data_in <= current_flattened_packet;
+                    bram_1_addr <= bram_1_addr + 1;
+                    bram_1_max_addr <= bram_1_addr + 1;
+                end
 
-                // increment the address pointer of whatever BRAM is selected
-                bram_0_addr <= bram_0_addr + (bram_select ? 1 : 0);
-                bram_1_addr <= bram_1_addr + (bram_select ? 0 : 1);
+                // switch BRAM if we need to
+                if (current_flattened_packet[63:56] == 8'h02) begin
+                    if(bram_select) begin
+                        bram_1_max_addr <= 0;
+                        bram_1_addr <= 0;
+                    end else begin
+                        bram_0_max_addr <= 0;
+                        bram_0_addr <= 0;
+                    end
 
-                bram_0_max_addr <= bram_0_addr + (bram_select ? 1 : 0);
-                bram_1_max_addr <= bram_1_addr + (bram_select ? 0 : 1);
+                    bram_select <= !bram_select;      
+                end
             end
             
             old_pkt_buf_doorbell <= pkt_buf_doorbell_in;
@@ -129,11 +140,11 @@ module display_controller(
             frame_delay_counter <= frame_delay_counter + 1;
 
             if(frame_delay_counter == frame_delay - 2) begin
-                r = bram_select ? bram_1_data_out[15:8] : bram_0_data_out[15:8];
-                g = bram_select ? bram_1_data_out[23:16] : bram_0_data_out[23:16];
-                b = bram_select ? bram_1_data_out[31:24] : bram_0_data_out[31:24];
-                y = bram_select ? bram_1_data_out[47:32] : bram_0_data_out[47:32];
-                x = bram_select ? bram_1_data_out[63:48] : bram_0_data_out[63:48];
+                r = bram_select ? bram_1_data_out[7:0] : bram_0_data_out[7:0];
+                g = bram_select ? bram_1_data_out[15:8] : bram_0_data_out[15:8];
+                b = bram_select ? bram_1_data_out[23:16] : bram_0_data_out[23:16];
+                y = bram_select ? bram_1_data_out[39:24] : bram_0_data_out[39:24];
+                x = bram_select ? bram_1_data_out[55:40] : bram_0_data_out[55:40];
 
                 x_start <= 1;
                 y_start <= 1;
