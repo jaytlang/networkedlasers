@@ -25,7 +25,7 @@ always_ff @(posedge clock_in) begin
             duty_cycle_counter <= duty_cycle_counter + 1;
         end
 
-        pwm_out <= duty_cycle_counter > value ? 0:1;
+        pwm_out <= duty_cycle_counter >= value ? 0:1;
     end
 end
 

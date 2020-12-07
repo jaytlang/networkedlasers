@@ -101,17 +101,17 @@ module net_top(
                              .pkt_buf_in(rx_pktbuf),
                              .pkt_buf_doorbell_in(rx_doorbell),
 
-                             .x_sclk(ja[3]),
-                             .x_mosi(ja[1]),
-                             .x_cs(ja[0]),
-                             .y_sclk(jb[3]),
-                             .y_mosi(jb[1]),
-                             .y_cs(jb[0]),
+                             .x_sclk(jd[0]),
+                             .x_mosi(jd[5]),
+                             .x_cs(jd[4]),
+                             .y_sclk(),
+                             .y_mosi(jd[6]),
+                             .y_cs(),
                              
-                             .r_pwm(jc[0]),
-                             .g_pwm(jc[1]),
-                             .b_pwm(jc[2]),
-                             .frame_sync(jc[3]));
+                             .r_pwm(jd[1]),
+                             .g_pwm(jd[2]),
+                             .b_pwm(jd[3]),
+                             .frame_sync(jd[7]));
 
     logic [6:0] segments;
     assign {cg, cf, ce, cd, cc, cb, ca} = segments[6:0];

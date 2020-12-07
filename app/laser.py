@@ -130,13 +130,17 @@ def save_traj(path, trajectory):
 
     input_lines = trajectory.tolist()
     for input_line_number, input_line in enumerate(input_lines):
-        x, y, r, g, b = [format(int(i), 'x') for i in input_line]
+        x, y, r, g, b = [int(i) for i in input_line]
 
-        if input_line_number == len(input_lines) - 1:
-            output_lines.append( zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2))
+        control = '02' if input_line_number == len(input_lines) - 1 else '01'
 
-        else:
-            output_lines.append( zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2) + '\n')
+        x = format(65535 - (x*128), 'x')
+        y = format(65535 - (y*128), 'x') # mirror y because galvos are oriented wierdly
+        r = format(r, 'x')
+        g = format(g, 'x')
+        b = format(b, 'x')
+
+        output_lines.append(control + zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2) + '\n')
 
     with open(filename, 'w') as output_file:
         output_file.writelines(output_lines)
@@ -176,7 +180,7 @@ def send_trajectory(trajectory, iface):
         #print(control, x, y, r, g, b)
         #sendp(packet_list, iface=iface)
         #exit()
-    sendp(packet_list[:-1:6] + [packet_list[-1]], iface=iface)
+    sendpfast(packet_list[:-1:6] + [packet_list[-1]], pps = 1000, iface=iface)
 
 
 while(cap.isOpened()):
@@ -186,7 +190,7 @@ while(cap.isOpened()):
         # Canny filtering
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)        # Converting the image to grayscale.
         gray_filtered = cv2.bilateralFilter(gray, 7, 50, 50)  # Smoothing without removing edges.
-        edges = cv2.Canny(gray, 60, 120)                      # Applying the canny filter
+        edges = cv2.Canny(gray, 30, 120)                      # Applying the canny filter
         edges_filtered = cv2.Canny(gray_filtered, 60, 120)
 
         # Trajectory Planning

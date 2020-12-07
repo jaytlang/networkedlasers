@@ -50,7 +50,7 @@ def animate_trajectory_with_jumps(template, contour, speed):
     total_jumps = 0
     total_jump_distance = 0
 
-    for i in range(0, len(formatted_contour), speed):
+    for i in range(0, len(formatted_contour) - 1, speed):
         current_x = contour[i][0]
         current_y = contour[i][1]
         next_x = contour[i+1][0]
@@ -68,6 +68,7 @@ def animate_trajectory_with_jumps(template, contour, speed):
         height = template.shape[1]
         thicco = cv2.resize(template, (width*3, height*3), interpolation = cv2.INTER_AREA)
         cv2.imshow('labeled.png', thicco)
+        cv2.imwrite('output.png', thicco)
         print(f'total jumps: {total_jumps}')
         print(f'total distance jumped: {total_jump_distance}px')
 
@@ -75,15 +76,21 @@ def animate_trajectory_with_jumps(template, contour, speed):
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
 
+    
 # Image Processing Functions
 def colorize_trajectory(img, trajectory):
     num_points, _ = trajectory.shape
     colors = np.zeros((num_points, 3), dtype=int)
 
-    for i in range(num_points):
-        y, x = trajectory[i]
-        colors[i] = img[x,y]
-
+    for i in range(num_points - 1):
+        y_current, x_current = trajectory[i]
+        y_next, x_next = trajectory[i+1]
+        
+        if is_adjacent(x_current, y_current, x_next, y_next):
+            colors[i] = img[x_current, y_current]
+        
+        else:
+            colors[i] = (0,0,0)
     return np.hstack((trajectory, colors))
 
 def calculate_trajectory(img, start_x=0, start_y=0):

@@ -70,7 +70,7 @@ module display_controller(
     logic [18:0] frame_delay_counter;
     
     
-    // ILA
+    /* ILA
     ila_0               ila(.clk(clock_in),
                             .probe0(bram_0_addr),
                             .probe1(bram_1_addr),
@@ -85,7 +85,7 @@ module display_controller(
                             .probe10(y),
                             .probe11(r),
                             .probe12(g),
-                            .probe13(b));
+                            .probe13(b)); */
 
     always_ff @(posedge clock_in) begin
         if(reset_in) begin
