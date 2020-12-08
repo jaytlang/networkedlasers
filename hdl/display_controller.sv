@@ -29,7 +29,6 @@ module display_controller(
     parameter G_LENGTH = 8;
     parameter R_LENGTH = 8;
 
-    parameter ETH_DATA_START = 14;
     logic old_pkt_buf_doorbell;
 
     // BRAM framebuffer
@@ -54,11 +53,10 @@ module display_controller(
                         .ena(1));
 
     logic [63:0] current_flattened_packet;
-    assign current_flattened_packet = {pkt_buf_in[ETH_DATA_START-1], pkt_buf_in[ETH_DATA_START], 
-                                       pkt_buf_in[ETH_DATA_START+1], pkt_buf_in[ETH_DATA_START+2],
-                                       pkt_buf_in[ETH_DATA_START+3], pkt_buf_in[ETH_DATA_START+4],
-                                       pkt_buf_in[ETH_DATA_START+5], pkt_buf_in[ETH_DATA_START+6],
-                                       pkt_buf_in[ETH_DATA_START+7]};
+    assign current_flattened_packet = {pkt_buf_in[0], pkt_buf_in[1], 
+                                       pkt_buf_in[2], pkt_buf_in[3],
+                                       pkt_buf_in[4], pkt_buf_in[5],
+                                       pkt_buf_in[6], pkt_buf_in[7]};
 
     // SPI controllers
     logic x_start, y_start;
@@ -68,7 +66,6 @@ module display_controller(
 
     // State Machine
     logic [18:0] frame_delay_counter;
-    
     
     /* ILA
     ila_0               ila(.clk(clock_in),

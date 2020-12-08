@@ -17,6 +17,7 @@ ip/**.xdc
 ip/**.v
 ip/**.dcp
 ip/**.v
+ip/**.sv
 ip/**.vhdl
 ip/**.xml
 ip/**.vh
