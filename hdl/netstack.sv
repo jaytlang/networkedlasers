@@ -333,7 +333,7 @@ module netstack(
                             state <= ST_CONFIRM;
                         end else begin
                             // Packet is GOOD!
-                            errno[15:0] <= EGOOD;
+                            if(rx_pktbuf[UDP_DATA_START] == 8'h02) errno[15:0] <= EGOOD;
                             
                             // Set databuf here. Treat it as ephemerally
                             // as the RX packet buffer. Obtain its length

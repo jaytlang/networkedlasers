@@ -7,4 +7,7 @@ ip/*.v
 ip/*.vhdl
 ip/*.xml
 ip/*.vh
+ip/*.sv
+ip/hdl
+ip/synth
 *.log
