@@ -11,8 +11,7 @@ import cv2
 import numpy as np
 import trajectory_planner as tp
 import os
-#import pandas as pd
-from scapy.all import *
+import socket
 
 if len(argv) == 1:
     raise SystemExit("No options specified. Try 'laser.py -h' for more information.")
@@ -23,6 +22,7 @@ if '-h' in argv:
     -o      output destination. path to directory, but use -n for streaming to projector.
     -t      output file type. options include any combination of 'png' or 'csv' or 'coe'.
     -n      network address of the laser, if it's output is desired.
+    -q      quiet mode. will not show the rendered frame.
 
 examples:
     python3 app/laser.py -i input.jpg -o output/ -n f0:0d:be:ef:ba:be
@@ -56,14 +56,19 @@ output_directory = argv[argv.index('-o') + 1] if '-o' in argv else None
 
 # Set output type to whatever was passed in with the -t option
 output_types = []
-for arg in argv[argv.index('-t')+1:]:
-    if len(arg) != 2 and '-' not in arg:
-        output_types.append(arg)
-    else:
-        break
+if '-t' in argv:
+    for arg in argv[argv.index('-t')+1:]:
+        if len(arg) != 2 and '-' not in arg:
+            output_types.append(arg)
+        else:
+            break
 
-# Set network address to whatever was passed in with the -n option
-network_address = argv[argv.index('-n') + 1] if '-n' in argv else None
+# Create network interface file descriptor if the -n parameter is specified
+if '-n' in argv:
+    fd = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+def zero_pad(input_str, length):
+    return '0'*(length - len(input_str)) + input_str
 
 def prep_frame(frame, desired_x_resolution, desired_y_resolution):
     # idea is that we can send a code to the DAC between 0 and 2*16 - 1
@@ -95,12 +100,10 @@ def save_png(path, image):
     cv2.imwrite(filename, image)
 
 def save_csv(path, trajectory):
+    import pandas as pd
     files = [i for i in os.listdir(path) if '.csv' in i]
     filename = f'{path}/{len(files)}.csv'
     pd.DataFrame(trajectory.astype(int)).to_csv(filename, header=False)
-
-def zero_pad(input_str, length):
-    return '0'*(length - len(input_str)) + input_str
 
 def save_coe(path, trajectory):
     files = [i for i in os.listdir(path) if '.coe' in i]
@@ -145,7 +148,7 @@ def save_traj(path, trajectory):
     with open(filename, 'w') as output_file:
         output_file.writelines(output_lines)
 
-def send_trajectory(trajectory, iface):
+def send_trajectory_udp(fd, trajectory, destination_ip='10.0.0.4', port_number=42069):
     input_lines = trajectory.tolist()
     packet_list = []
 
@@ -171,26 +174,19 @@ def send_trajectory(trajectory, iface):
         b = format(b, 'x')
 
         data = control + zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2)
-
-        packet = Ether()
-        packet.dst = "b8:27:eb:a4:30:73"
-        packet.type = 0x1234
-        packet = packet / bytes.fromhex(data)
-        packet_list.append(packet)
-        #print(control, x, y, r, g, b)
-        #sendp(packet_list, iface=iface)
-        #exit()
-    sendpfast(packet_list[:-1:6] + [packet_list[-1]], pps = 1000, iface=iface)
+        fd.sendto(bytes.fromhex(data), (destination_ip, port_number))
 
 
 while(cap.isOpened()):
     ret, frame = cap.read()
-    frame = prep_frame(frame, 512, 512)
     if ret == True:
+        # Rescale frame to 512x512
+        frame = prep_frame(frame, 512, 512)
+
         # Canny filtering
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)        # Converting the image to grayscale.
-        gray_filtered = cv2.bilateralFilter(gray, 7, 50, 50)  # Smoothing without removing edges.
-        edges = cv2.Canny(gray, 30, 120)                      # Applying the canny filter
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)        # Convert image to grayscale
+        gray_filtered = cv2.bilateralFilter(gray, 7, 50, 50)  # Smooth without removing edges
+        edges = cv2.Canny(gray, 30, 120)                      # Apply canny filter
         edges_filtered = cv2.Canny(gray_filtered, 60, 120)
 
         # Trajectory Planning
@@ -199,13 +195,11 @@ while(cap.isOpened()):
         colorized_trajectory = tp.colorize_trajectory(blur, trajectory)
         rendered_trajectory = tp.draw_trajectory(np.zeros_like(frame), colorized_trajectory)
 
-        # Stacking the images to print them together for comparison
+        # Stack images to display together for comparison
         edges_filtered_colored = cv2.cvtColor(edges_filtered, cv2.COLOR_GRAY2BGR)
-        #planned_colored = cv2.cvtColor(planned, cv2.COLOR_GRAY2BGR)
         images = np.hstack((frame, edges_filtered_colored, rendered_trajectory))
 
-
-        # Save the frame if option specified
+        # Save the frame if option specified in argv
         if 'png' in output_types:
             save_png(output_directory, rendered_trajectory)
 
@@ -218,15 +212,15 @@ while(cap.isOpened()):
         if 'traj' in output_types:
             save_traj(output_directory, colorized_trajectory)
 
-        # Write frame over the network if option specified
+        # Write frame over the network if option specified in argv
         if '-n' in argv:
-            send_trajectory(colorized_trajectory, 'enx106530b80573')
+            send_trajectory_udp(fd, colorized_trajectory)
 
-        # Display the resulting frame
-        cv2.imshow('Frame', images)
-
-        if cv2.waitKey(25) & 0xFF == ord('q'): # Press Q to exit
-            break
+        # Display the resulting frame if -q not in options
+        if '-q' not in argv:
+            cv2.imshow('Frame', images)
+            if cv2.waitKey(25) & 0xFF == ord('q'): # Press Q to exit
+                break
 
     else:
         break
