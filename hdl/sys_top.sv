@@ -61,17 +61,17 @@ module sys_top(
                              .pkt_buf_in(netout),
                              .pkt_buf_doorbell_in(netout_valid),
 
-                             .x_sclk(jc[0]),
-                             .x_mosi(jc[5]),
-                             .x_cs(jc[4]),
+                             .x_sclk(jd[0]),
+                             .x_mosi(jd[5]),
+                             .x_cs(jd[4]),
                              .y_sclk(),
-                             .y_mosi(jc[6]),
+                             .y_mosi(jd[6]),
                              .y_cs(),
 
-                             .r_pwm(jc[1]),
-                             .g_pwm(jc[2]),
-                             .b_pwm(jc[3]),
-                             .frame_sync(jc[7]));
+                             .r_pwm(jd[1]),
+                             .g_pwm(jd[2]),
+                             .b_pwm(jd[3]),
+                             .frame_sync(jd[7]));
                 
     netstack            netstack(.sys_clk(sys_clk),
                                  .sys_rst(sys_rst),
