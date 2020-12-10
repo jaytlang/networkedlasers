@@ -5,7 +5,6 @@
 #
 # fischerm@mit.edu, Fall 2020
 
-
 from sys import argv
 import cv2
 import numpy as np
@@ -13,6 +12,9 @@ import trajectory_planner as tp
 import os
 import socket
 
+cv2.setUseOptimized(True) # no idea if this does anything but hahaa openCV go brrrrr
+
+# parse input options
 if len(argv) == 1:
     raise SystemExit("No options specified. Try 'laser.py -h' for more information.")
 
@@ -35,11 +37,8 @@ if '-i' not in argv:
 if '-t' in argv and '-o' not in argv:
     raise SystemExit("Output type specified, but no output directory specified. Specify one with -o or run 'laser.py -h' for more information.")
 
-#if '-o' not in argv and '-n' not in argv:
-#    raise SystemExit("No output destination specified, specify one with -o or -n or run 'laser.py -h' for more information")
 
 # Set capture to whatever was passed in with the -i option
-#cv2.setUseOptimized(True) # no idea if this does anything but hahaa openCV go brrrrr
 input_filename = argv[argv.index('-i') + 1]
 try:
     source = int(input_filename)
@@ -49,7 +48,6 @@ except:
 cap = cv2.VideoCapture(source)
 if (cap.isOpened() == False):
     raise SystemExit(f"Error opening input file {input_filename}")
-
 
 # Set output directory to whatever was passed in with the -o option
 output_directory = argv[argv.index('-o') + 1] if '-o' in argv else None
@@ -67,21 +65,9 @@ if '-t' in argv:
 if '-n' in argv:
     fd = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-def zero_pad(input_str, length):
-    return '0'*(length - len(input_str)) + input_str
-
+# Resize image to desired x and y resolution. Used to decrease the number of points in the
+# image and to maintain aspect ratio
 def prep_frame(frame, desired_x_resolution, desired_y_resolution):
-    # idea is that we can send a code to the DAC between 0 and 2*16 - 1
-    # however we can take in inputs of arbitrary size and resolution, so to make
-    # image processing not take forever we want to resize the image to some reasonable
-    # resolution (like 512x512) and then run trajectory planning on that, and then
-    # rescale afterwards to some desired image size
-
-    # this function resizes the image so that it fits within a frame of specified size
-    # it does preserve aspect ratio and doesn't add any bordering, so while
-    # the x or y of the returned image will be at maximum, they both won't be unless
-    # the image is already at the desired aspect ratio
-
     x_resolution = frame.shape[0]
     y_resolution = frame.shape[1]
 
@@ -94,17 +80,20 @@ def prep_frame(frame, desired_x_resolution, desired_y_resolution):
     else:
         return cv2.resize(frame, None, fx=x_scale_factor, fy=x_scale_factor)
 
+# Export image to directory path as n.png, where n is the number of .png files in directory plus one
 def save_png(path, image):
     files = [i for i in os.listdir(path) if '.png' in i]
     filename = f'{path}/{len(files)}.png'
     cv2.imwrite(filename, image)
 
+# Export image to directory path as n.csv, where n is the number of .csv files in directory plus one
 def save_csv(path, trajectory):
     import pandas as pd
     files = [i for i in os.listdir(path) if '.csv' in i]
     filename = f'{path}/{len(files)}.csv'
     pd.DataFrame(trajectory.astype(int)).to_csv(filename, header=False)
 
+# Export image to directory path as n.coe, where n is the number of .coe files in directory plus one
 def save_coe(path, trajectory):
     files = [i for i in os.listdir(path) if '.coe' in i]
     filename = f'{path}/{len(files)}.coe'
@@ -112,6 +101,8 @@ def save_coe(path, trajectory):
     output_lines = ['memory_initialization_radix=16;\n','memory_initialization_vector=\n']
 
     input_lines = trajectory.tolist()
+
+    zero_pad = lambda input_str, length: '0'*(length - len(input_str)) + input_str
 
     for input_line_number, input_line in enumerate(input_lines):
         x, y, r, g, b = [format(int(i), 'x') for i in input_line]
@@ -148,7 +139,7 @@ def save_traj(path, trajectory):
     with open(filename, 'w') as output_file:
         output_file.writelines(output_lines)
 
-def send_trajectory_udp(fd, trajectory, destination_ip='10.0.0.4', port_number=42069):
+def send_trajectory_udp(fd, trajectory, destination_ip='142.79.194.65', port_number=42069):
     input_lines = trajectory.tolist()
     packet_list = []
 
@@ -172,6 +163,8 @@ def send_trajectory_udp(fd, trajectory, destination_ip='10.0.0.4', port_number=4
         r = format(r, 'x')
         g = format(g, 'x')
         b = format(b, 'x')
+
+        zero_pad = lambda input_str, length: '0'*(length - len(input_str)) + input_str
 
         data = control + zero_pad(x, 4) + zero_pad(y, 4) + zero_pad(r, 2) + zero_pad(g,2) + zero_pad(b,2)
         fd.sendto(bytes.fromhex(data), (destination_ip, port_number))
@@ -212,7 +205,7 @@ while(cap.isOpened()):
         if 'traj' in output_types:
             save_traj(output_directory, colorized_trajectory)
 
-        # Write frame over the network if option specified in argv
+        # Write frame over the network, if the option is specified
         if '-n' in argv:
             send_trajectory_udp(fd, colorized_trajectory)
 

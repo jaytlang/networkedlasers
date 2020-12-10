@@ -8,7 +8,8 @@
 import cv2
 import numpy as np
 
-# Export Functions
+# Draws each point trajectory on a template, showing what the image written to the laser should look like.
+# Primiarily used for debug.
 def draw_trajectory(template, trajectory, color=(255,0,0), popup=False):
     _, depth = trajectory.shape
 
@@ -32,6 +33,8 @@ def draw_trajectory(template, trajectory, color=(255,0,0), popup=False):
             cv2.waitKey()
         return render
 
+# Draws each point trajectory on a template, but animated to showing what path is taken in drawing the trajectory.
+# Primiarily used for debug.
 def animate_trajectory(template, contour, speed):
     formatted_contour = np.expand_dims(contour, 1)
     for i in range(0, len(formatted_contour), speed):
@@ -45,6 +48,9 @@ def animate_trajectory(template, contour, speed):
         if cv2.waitKey(5) & 0xFF == ord('q'):
             break
 
+# Draws each point trajectory on a template, but animated to showing what path is taken in drawing the trajectory.
+# Draws jumps between noncontinuous points with red lines, and draws continous points with green lines.
+# Primiarily used for debug.
 def animate_trajectory_with_jumps(template, contour, speed):
     formatted_contour = np.expand_dims(contour, 1)
     total_jumps = 0
@@ -78,6 +84,9 @@ def animate_trajectory_with_jumps(template, contour, speed):
 
     
 # Image Processing Functions
+
+# Take every point in the trajectory, and fill it with color information from the source image.
+# Passing a blurred image here usually works best
 def colorize_trajectory(img, trajectory):
     num_points, _ = trajectory.shape
     colors = np.zeros((num_points, 3), dtype=int)
@@ -93,10 +102,11 @@ def colorize_trajectory(img, trajectory):
             colors[i] = (0,0,0)
     return np.hstack((trajectory, colors))
 
+# The trajectory planning algorithim, which is a nearest-neighbors implementation
 def calculate_trajectory(img, start_x=0, start_y=0):
     # calculate the trajectory for the entire image, and export as list of x,y points
     # also export an array of all the degenercies found in the image
-    binary_img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)[1]  # ensure binary
+    binary_img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)[1]  # ensure image is binary
     contours = find_contours(binary_img)
 
     # if there aren't any contours in the image, just return nothing
@@ -126,11 +136,14 @@ def calculate_trajectory(img, start_x=0, start_y=0):
 
     return np.vstack(tuple(output_trajectory)), np.asarray(degeneracies)
 
+# Find all the connected points, and package them together into contours
 def find_contours(img):
     # splits image into a list of numpy arrays, each corresponding to a contour in the image
     num_labels, labels = cv2.connectedComponents(img)
     return [np.column_stack((np.where(labels == i)[::-1])) for i in range(1, np.max(labels))]
 
+# Take an unsorted list of points that are supposedly connected to each other, and order them
+# such that the nth point is adjacent to the n-1th point and the n+1th point. 
 def order_contour(contour):
     # take first element of contour as starting, then keep finding adjacent points until the curve has been linearized
     # return contour afterwards as numpy array, as well as degeneracies
@@ -168,6 +181,7 @@ def order_contour(contour):
 
     return np.asarray(output_trajectory), np.asarray(degeneracies)
 
+# Find the next point in the contour that is adjacent to the point at (x, y)
 def find_next_point(points, x, y):
     # Given some point in the contour, find the next (adjacent) point in the contour
 
@@ -183,6 +197,8 @@ def find_next_point(points, x, y):
 
     return None
 
+# Returns true if (x1, y1) is adjacent to (x2, y2). four_level adacency does not allow diagonally connected
+# points, but eight_level does.
 def is_adjacent(x1, y1, x2, y2, adjacency='eight_level'):
     if(x1 == x2 and y1 ==y2):
         return False
@@ -199,9 +215,8 @@ def is_adjacent(x1, y1, x2, y2, adjacency='eight_level'):
             return True
         return False
 
+# Reorders the contour such that the first point is the one closest to the (x,y) point passed in
 def get_reordered_contour(contour, x, y):
-    # returns the passed contour, just reordered such that the first point is the one closest to the x,y point passed in
-
     # figure out what index the nearest point occurs at
     closest_point = get_nearest_point([contour], x, y).tolist()[::-1]
     contour_list = contour#.tolist()
@@ -210,9 +225,8 @@ def get_reordered_contour(contour, x, y):
     reordered_contour = [contour_list[i%len(contour_list)] for i in range(index, index + len(contour_list))]
     return np.asarray(reordered_contour)
 
+# Get the contour in which an (x,y) point is found
 def get_nearest_contour(contours, x, y):
-    # get contour corresponding to nearest point
-
     # turns out numpy doesn't have a built in method for seeing if a row is in a matrix,
     # so instead we have to convert to a list first, which is slow. big sad.
     closest_point = get_nearest_point(contours, x, y).tolist()[::-1]
@@ -222,8 +236,8 @@ def get_nearest_contour(contours, x, y):
         if closest_point in contour:
             return np.asarray(contour)
 
+# Find the nearest point on any contour to a specified (x,y) point
 def get_nearest_point(contours, x, y):
-    ### returns the nearest point on a contour to a provided x,y point
     # put all x, y points into a list
     all_points = np.vstack(tuple(contours))
 
